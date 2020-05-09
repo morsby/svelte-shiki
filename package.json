@@ -1,0 +1,52 @@
+{
+    "name": "svelte-shiki",
+    "version": "0.0.1",
+    "description": "A preprocessor for Svelte, adding syntax highligting through the Shiki library.",
+    "main": "dist/index.js",
+    "scripts": {
+        "build": "tsc",
+        "test": "jest",
+        "format": "prettier --write \"src/**/*.ts\"",
+        "lint": "eslint '*/**/*.{js,ts}' --fix",
+        "prepack": "yarn build",
+        "prepublish": "yarn lint && yarn test"
+    },
+    "files": [
+        "dist/**/*"
+    ],
+    "author": "Morsby",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/morsby/svelte-shiki.git"
+    },
+    "keywords": [
+        "svelte",
+        "shiki",
+        "preprocessor",
+        "syntax highlighting"
+    ],
+    "license": "MIT",
+    "devDependencies": {
+        "@types/jest": "^25.2.1",
+        "@types/node": "^13.11.1",
+        "@typescript-eslint/eslint-plugin": "^2.31.0",
+        "@typescript-eslint/parser": "^2.31.0",
+        "eslint": "^7.0.0",
+        "eslint-config-prettier": "^6.11.0",
+        "eslint-plugin-prettier": "^3.1.3",
+        "husky": "^4.2.5",
+        "jest": "^25.3.0",
+        "prettier": "^2.0.5",
+        "ts-jest": "^25.3.1",
+        "tslint": "^6.1.1",
+        "tslint-config-prettier": "^1.18.0",
+        "typescript": "^3.8.3"
+    },
+    "dependencies": {},
+    "husky": {
+        "hooks": {
+            "pre-commit": "yarn format && yarn lint",
+            "pre-push": "yarn test"
+        }
+    }
+}
