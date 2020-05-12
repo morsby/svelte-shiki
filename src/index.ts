@@ -5,26 +5,28 @@ import { SvelteNode, SvelteAst } from "./types";
 import { initHighlighter } from "./highlighter";
 import { getProp, replaceContents } from "./utils";
 import { PreprocessorGroup, Processed } from "svelte/types/compiler/preprocess";
-let options = {};
 
-const highlightCode = async (content: string): Promise<string> => {
+import { HighlighterOptions } from "shiki/dist/highlighter";
+
+const highlightCode = async (content: string, options?: HighlighterOptions): Promise<string> => {
     // if no code elements, return
     if (!content.includes("<code")) return content;
 
+    // parse the file with Svelte
     let ast;
-    const codeNodes: SvelteNode[] = [];
     try {
         ast = parse(content) as SvelteAst;
     } catch (e) {
         console.error(e, "Error parsing component content");
     }
 
-    const highlighter = await initHighlighter();
     if (!ast) {
         console.log("No AST created ...");
         return content;
     }
 
+    // walk the AST, find <code> nodes; push that (or its parent <pre>) to codeNodes
+    const codeNodes: SvelteNode[] = [];
     walk(ast.html, {
         enter(baseNode, baseParent) {
             // type conversions; missing e.g. name
@@ -44,80 +46,69 @@ const highlightCode = async (content: string): Promise<string> => {
 
     if (!codeNodes.length) return content;
 
+    // untouched contents
     const beforeProcessed = {
         content,
         offset: 0,
     };
 
-    const processed = codeNodes.reduce((edited, node) => {
-        if (!node.children) {
-            return edited;
-        }
+    // Init highlighter for reuse
+    const highlighter = await initHighlighter(options);
 
-        const { content, offset } = edited;
-        const { start, end } = node;
+    // Start the highlighting:
+    const processed = codeNodes.reduce((editedSoFar, currentNode) => {
+        const { content, offset } = editedSoFar;
+        const { start, end } = currentNode;
+
         let inline = true;
-        if (node.name === "pre") {
+        if (currentNode.name === "pre") {
             inline = false;
-            const childNode = node.children.find((c) => c.name === "code");
+            const childNode = (currentNode.children || []).find((c) => c.name === "code");
             if (childNode) {
-                node = childNode;
-                if (!node.children) {
-                    return edited;
-                }
+                currentNode = childNode;
             }
         }
 
-        let codeToHighlight = node.children[0].data;
+        // needs at least a 'Text' child
+        if (!currentNode.children) {
+            return editedSoFar;
+        }
+
+        // The only child of a <code> is Text
+        let codeToHighlight = currentNode.children[0].data;
 
         if (!codeToHighlight) {
-            return edited;
+            return editedSoFar;
         }
 
         let lang = "";
-        const langProp = getProp(node, "lang");
+        const langProp = getProp(currentNode, "lang");
 
+        // If used as regular <code lang="$$">
         if (langProp) {
             lang = langProp[0].raw;
-        } else if (!inline) {
-            const langClass = (getProp(node, "class") || []).find((c) => c.data.includes("language-"));
+        }
+
+        // If used through markdown with "```$$"" syntax
+        if (!langProp && !inline) {
+            const langClass = (getProp(currentNode, "class") || []).find((c) => c.data.includes("language-"));
 
             if (langClass) {
                 lang = langClass.raw.split("-")[1];
             }
         }
 
+        // If used through inline markdown "`lang={$$}"" syntax, extract the language
         if (inline) {
-            const index = codeToHighlight.indexOf(" ");
-            const guessedLang = codeToHighlight.substring(0, index);
-            if (["javascript", "js", "jsx", "svelte", "go", "golang", "ts", "typescript"].includes(guessedLang)) {
-                lang = guessedLang;
-                codeToHighlight = codeToHighlight.substring(index + 1);
-            }
-        }
-
-        // Do the highlighting and lots of cleanup
-        if (lang.length > 0 && highlighter.codeToHtml) {
-            codeToHighlight = highlighter.codeToHtml(codeToHighlight, lang as TLang);
-            codeToHighlight = codeToHighlight.replace(/{/g, "&#123;");
-            codeToHighlight = codeToHighlight.replace(/}/g, "&#125;");
-            codeToHighlight = codeToHighlight.replace(/(<span .*?>)(.*?)<\/span>/g, (_match, p1, p2) => {
-                return `${p1}${p2.replace(/ /g, "&#x2007;")}</span>`;
+            codeToHighlight.replace(/^lang={(.+?)}/, (_, extractedLang) => {
+                lang = extractedLang;
+                return "";
             });
         }
 
-        // Inline formatting
-        if (inline && lang) {
-            const bgColor = codeToHighlight.match(/background-color:(.+?)[";]/);
-            if (bgColor) {
-                codeToHighlight = codeToHighlight.replace(/<\/?pre.*?>/g, "");
-                codeToHighlight = codeToHighlight.replace(
-                    "<code>",
-                    `<code style="background-color:${bgColor[1]}; padding: 0 5px">`,
-                );
-            }
-        } else {
-            codeToHighlight = `<code style="padding: 0 5px">${codeToHighlight}</code>`;
+        // Do the highlighting
+        if (lang.length > 0) {
+            codeToHighlight = highlighter.highlight(codeToHighlight, lang as TLang, inline);
         }
 
         return replaceContents(content, codeToHighlight, start, end, offset);
@@ -125,12 +116,10 @@ const highlightCode = async (content: string): Promise<string> => {
     return processed.content;
 };
 
-const preprocessor = (opts = {}): PreprocessorGroup => {
-    options = { ...options, ...opts };
-
+const preprocessor = (options: HighlighterOptions = { theme: "nord" }): PreprocessorGroup => {
     return {
         markup: async ({ content }): Promise<Processed> => {
-            content = await highlightCode(content);
+            content = await highlightCode(content, options);
 
             return {
                 code: content,
