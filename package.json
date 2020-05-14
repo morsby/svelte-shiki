@@ -1,6 +1,6 @@
 {
     "name": "svelte-shiki",
-    "version": "0.0.1",
+    "version": "0.0.2",
     "description": "A preprocessor for Svelte, adding syntax highligting through the Shiki library.",
     "main": "dist/index.js",
     "scripts": {
@@ -38,6 +38,7 @@
         "estree-walker": "^2.0.1",
         "husky": "^4.2.5",
         "jest": "^25.3.0",
+        "magic-string": "^0.25.7",
         "mdsvex": "^0.4.0",
         "prettier": "^2.0.5",
         "shiki-languages": "^0.1.6",
