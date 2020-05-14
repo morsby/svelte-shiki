@@ -2,7 +2,7 @@ import * as fs from "fs";
 import * as path from "path";
 import { preprocess } from "svelte/compiler";
 import { mdsvex } from "mdsvex";
-import { preprocessor } from "..";
+import { preprocessor as svelteShiki } from "../preprocessor";
 
 const data = {
     block: fs.readFileSync(path.resolve(__dirname, "data/CodeBlock.svelte")).toString(),
@@ -15,7 +15,7 @@ const data = {
 
 describe("end-to-end", () => {
     test("code block", async () => {
-        const preprocessed = await preprocess(data.block, preprocessor(), {
+        const preprocessed = await preprocess(data.block, svelteShiki(), {
             filename: path.resolve(__dirname, "data/CodeBlock.svelte"),
         });
 
@@ -26,7 +26,7 @@ describe("end-to-end", () => {
     });
 
     test("code inline", async () => {
-        const preprocessed = await preprocess(data.inline, preprocessor(), {
+        const preprocessed = await preprocess(data.inline, svelteShiki(), {
             filename: path.resolve(__dirname, "data/CodeInline.svelte"),
         });
 
@@ -36,7 +36,7 @@ describe("end-to-end", () => {
     });
 
     test("complex page", async () => {
-        const preprocessed = await preprocess(data.complex, preprocessor(), {
+        const preprocessed = await preprocess(data.complex, svelteShiki(), {
             filename: path.resolve(__dirname, "data/Test.svelte"),
         });
 
@@ -48,7 +48,7 @@ describe("end-to-end", () => {
 
 describe("mdsvex / markdown", () => {
     test("block", async () => {
-        const preprocessed = await preprocess(data.mdBlock, [mdsvex(), preprocessor()], {
+        const preprocessed = await preprocess(data.mdBlock, [mdsvex(), svelteShiki()], {
             filename: path.resolve(__dirname, "data/CodeBlock.svexy"),
         });
 
@@ -59,7 +59,7 @@ describe("mdsvex / markdown", () => {
     });
 
     test("inline", async () => {
-        const preprocessed = await preprocess(data.mdInline, [mdsvex(), preprocessor()], {
+        const preprocessed = await preprocess(data.mdInline, [mdsvex(), svelteShiki()], {
             filename: path.resolve(__dirname, "data/CodeInline.svexy"),
         });
 
