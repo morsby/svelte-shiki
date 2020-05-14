@@ -1,53 +1,12 @@
 import { getHighlighter, IThemedToken, getTheme } from "shiki";
-import { Highlighter, HighlighterOptions } from "shiki/dist/highlighter";
-import { HtmlRendererOptions } from "shiki/dist/renderer";
-import { TLang } from "shiki-languages";
+import { HighlighterOptions } from "shiki/dist/highlighter";
 import { IShikiTheme } from "shiki-themes";
-
-/**
- * ESCAPING HTML
- */
-interface SpecialChars {
-    char: "<" | ">" | "{" | "}" | " ";
-    replacement: string;
-}
-
-const escapeHtml = (html: string): string => {
-    const specialChars: SpecialChars[] = [
-        {
-            char: " ",
-            replacement: "&#32;",
-        },
-        {
-            char: "<",
-            replacement: "&lt;",
-        },
-        {
-            char: ">",
-            replacement: "&gt;",
-        },
-        {
-            char: "{",
-            replacement: "&#123;",
-        },
-        {
-            char: "}",
-            replacement: "&#125;",
-        },
-    ];
-    return specialChars.reduce(
-        (replaced, { char, replacement }) => replaced.replace(new RegExp(char, "g"), replacement),
-        html,
-    );
-};
+import { SvelteHighlighter, RendererOptions } from "./types";
+import { escapeHtml } from "./utils";
 
 /**
  * custom renderToHtml function
  */
-interface RendererOptions extends HtmlRendererOptions {
-    inline?: boolean;
-}
-
 export const renderToHtml = (lines: IThemedToken[][], options: RendererOptions = {}): string => {
     const bg = options.bg || "#fff";
 
@@ -88,14 +47,6 @@ const isPlaintext = (lang: string): boolean => {
     return ["plaintext", "txt", "text"].indexOf(lang) !== -1;
 };
 
-/**
- * Extend the Highlighter to include the custom renderer and a theme prop
- */
-interface SvelteHighlighter extends Highlighter {
-    theme: IShikiTheme;
-    highlight(code: string, lang: TLang, inline?: boolean): string;
-}
-
 export const initHighlighter = async (options?: HighlighterOptions): Promise<SvelteHighlighter> => {
     const defaultOptions: HighlighterOptions = {
         theme: "nord",
@@ -104,13 +55,13 @@ export const initHighlighter = async (options?: HighlighterOptions): Promise<Sve
     options = { ...defaultOptions, ...options };
 
     // get theme
-    let t: IShikiTheme;
+    let theme: IShikiTheme;
     if (typeof options.theme === "string") {
-        t = getTheme(options.theme);
+        theme = getTheme(options.theme);
     } else if (options.theme.name) {
-        t = options.theme;
+        theme = options.theme;
     } else {
-        t = getTheme("nord");
+        theme = getTheme("nord");
     }
 
     const highlighter = (await getHighlighter({
@@ -118,19 +69,20 @@ export const initHighlighter = async (options?: HighlighterOptions): Promise<Sve
     })) as SvelteHighlighter;
 
     highlighter.highlight = (code, lang, inline = false): string => {
+        code = code.trim();
         if (isPlaintext(lang)) {
             return renderToHtml([[{ content: code }]], {
-                bg: t.bg,
+                bg: theme.bg,
             });
         }
 
         const tokens = highlighter.codeToThemedTokens(code, lang);
         return renderToHtml(tokens, {
-            bg: t.bg,
+            bg: theme.bg,
             inline,
         });
     };
 
-    highlighter.theme = t;
+    highlighter.theme = theme;
     return highlighter;
 };

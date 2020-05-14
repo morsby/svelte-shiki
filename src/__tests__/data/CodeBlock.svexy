@@ -1,0 +1,4 @@
+```js
+const foo = "svelte-shiki";
+console.log(foo);
+```

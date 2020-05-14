@@ -34,7 +34,7 @@ const highlightCode = async (content: string, options?: HighlighterOptions): Pro
 
             if (node.name !== "code") return;
 
-            // Shiki adds a "pre" by default; if the parent is a <pre> element, we
+            // Shiki adds a "pre" (e.g. for styling); if the parent is a <pre> element, we
             // replace the parent as well.
             if (parent.name === "pre") {
                 codeNodes.push(parent);
@@ -60,6 +60,7 @@ const highlightCode = async (content: string, options?: HighlighterOptions): Pro
         const { content, offset } = editedSoFar;
         const { start, end } = currentNode;
 
+        // Inline or code block?
         let inline = true;
         if (currentNode.name === "pre") {
             inline = false;
@@ -69,38 +70,34 @@ const highlightCode = async (content: string, options?: HighlighterOptions): Pro
             }
         }
 
-        // needs at least a 'Text' child
-        if (!currentNode.children) {
-            return editedSoFar;
-        }
-
-        // The only child of a <code> is Text
-        let codeToHighlight = currentNode.children[0].data;
+        // The only child of a <code> is Text (I think?)
+        let codeToHighlight = (currentNode.children || [{}])[0].data;
 
         if (!codeToHighlight) {
             return editedSoFar;
         }
 
         let lang = "";
-        const langProp = getProp(currentNode, "lang");
 
         // If used as regular <code lang="$$">
+        const langProp = getProp(currentNode, "lang");
         if (langProp) {
             lang = langProp[0].raw;
         }
 
-        // If used through markdown with "```$$"" syntax
+        // If used through markdown with block syntax ("```$$ { code... }")
         if (!langProp && !inline) {
             const langClass = (getProp(currentNode, "class") || []).find((c) => c.data.includes("language-"));
 
             if (langClass) {
-                lang = langClass.raw.split("-")[1];
+                lang = langClass.raw.replace("language-", "");
             }
         }
 
         // If used through inline markdown "`lang={$$}"" syntax, extract the language
+        // and replace the lang indicator
         if (inline) {
-            codeToHighlight.replace(/^lang={(.+?)}/, (_, extractedLang) => {
+            codeToHighlight = codeToHighlight.replace(/^lang={(.+?)}/, (_, extractedLang) => {
                 lang = extractedLang;
                 return "";
             });

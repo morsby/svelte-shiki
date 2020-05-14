@@ -1,4 +1,4 @@
-import { SvelteNode, Value } from "./types";
+import { SvelteNode, Value, SpecialChars } from "./types";
 
 // getProp gets a prop with name provided in "attr" from a node or undefined
 export const getProp = (node: SvelteNode, attr: string): Value[] | undefined => {
@@ -18,4 +18,34 @@ export const replaceContents = (
         content: content.substr(0, start + offset) + value + content.substr(end + offset),
         offset: offset + value.length - (end - start),
     };
+};
+
+// escapeHtml chars
+export const escapeHtml = (html: string): string => {
+    const specialChars: SpecialChars[] = [
+        {
+            char: " ",
+            replacement: "&#32;",
+        },
+        {
+            char: "<",
+            replacement: "&lt;",
+        },
+        {
+            char: ">",
+            replacement: "&gt;",
+        },
+        {
+            char: "{",
+            replacement: "&#123;",
+        },
+        {
+            char: "}",
+            replacement: "&#125;",
+        },
+    ];
+    return specialChars.reduce(
+        (replaced, { char, replacement }) => replaced.replace(new RegExp(char, "g"), replacement),
+        html,
+    );
 };
