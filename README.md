@@ -19,7 +19,6 @@ Add it as a preprocessor to your rollup or webpack config, the svelte-shiki prep
 ```js
 import { svelteShiki } from "svelte-shiki";
 
-
 const defaultOptions = {
     theme: "nord",
     langs: undefined
@@ -49,6 +48,7 @@ Want to use your own theme from VS Code?
 
 ```ts
 import { svelteShiki , loadTheme } from "svelte-shiki";
+
 const theme = loadTheme('./yourTheme.json')
 
 export default {
