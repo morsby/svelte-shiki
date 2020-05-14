@@ -25,7 +25,7 @@ export const escapeHtml = (html: string): string => {
     const specialChars: SpecialChars[] = [
         {
             char: " ",
-            replacement: "&#32;",
+            replacement: "&#8199;",
         },
         {
             char: "<",
