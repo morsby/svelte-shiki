@@ -38,25 +38,36 @@ export default {
 
 ```
 
-> ⚠️ **NOTE:** Remember to declare it for both server and client plugins!
+> ⚠️ **NOTE:** Remember to declare it for both server and client plugins if applicable!
 
 For options, please refer to the [shiki documentation](https://github.com/octref/shiki)
 
-### Custom themes
+## Elements that will be styled
+
+It works with the following syntaxes:
+
+-   Any HTML-styled code block: `<code lang="js">...</code>`
+-   Markdown blocks:
+    ```js
+    const foo = "bar";
+    ```
+-   Inline markdown blocks with the following language identifier: `lang={js} const foo = "bar";`.
+
+## Custom themes
 
 Want to use your own theme from VS Code?
 
 ```ts
 import { svelteShiki , loadTheme } from "svelte-shiki";
 
-const theme = loadTheme('./yourTheme.json')
+const theme = loadTheme("./yourTheme.json")
 
 export default {
   ...configStuff,
   plugins: [
     svelte({
       preprocess: [
-          // other preprocessors
+          // other preprocessors?
           svelteShiki({ theme })
       ]
     }),
