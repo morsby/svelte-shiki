@@ -73,6 +73,7 @@ export const initHighlighter = async (options?: HighlighterOptions): Promise<Sve
         if (isPlaintext(lang)) {
             return renderToHtml([[{ content: code }]], {
                 bg: theme.bg,
+                inline,
             });
         }
 

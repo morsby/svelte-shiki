@@ -103,12 +103,16 @@ const highlightCode = async (content: string, options?: HighlighterOptions): Pro
             });
         }
 
-        if (lang.length == 0) {
-            lang = "txt";
+        if (lang.length > 0) {
+            // Do the highlighting
+            codeToHighlight = highlighter.highlight(codeToHighlight, lang as TLang, inline);
+        } else {
+            if (inline) {
+                codeToHighlight = `<code class="language-plain">${codeToHighlight}</code>`;
+            } else {
+                codeToHighlight = `<pre class="language-plain"><code>${codeToHighlight}</code></pre>`;
+            }
         }
-        // Do the highlighting
-        codeToHighlight = highlighter.highlight(codeToHighlight, lang as TLang, inline);
-
         return replaceContents(content, codeToHighlight, start, end, offset);
     }, beforeProcessed);
     return processed.content;
