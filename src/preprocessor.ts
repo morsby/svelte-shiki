@@ -103,10 +103,11 @@ const highlightCode = async (content: string, options?: HighlighterOptions): Pro
             });
         }
 
-        // Do the highlighting
-        if (lang.length > 0) {
-            codeToHighlight = highlighter.highlight(codeToHighlight, lang as TLang, inline);
+        if (lang.length == 0) {
+            lang = "txt";
         }
+        // Do the highlighting
+        codeToHighlight = highlighter.highlight(codeToHighlight, lang as TLang, inline);
 
         return replaceContents(content, codeToHighlight, start, end, offset);
     }, beforeProcessed);
