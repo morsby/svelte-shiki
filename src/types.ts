@@ -1,8 +1,7 @@
 import { Ast } from "svelte/types/compiler/interfaces";
-import { Highlighter } from "shiki/dist/highlighter";
+import { Highlighter, HtmlRendererOptions } from "shiki";
 import { IShikiTheme } from "shiki-themes";
 import { TLang } from "shiki-languages";
-import { HtmlRendererOptions } from "shiki/dist/renderer";
 
 // AST/Nodes
 export interface Value {
@@ -39,7 +38,7 @@ export interface SvelteAst extends Ast {
 // Highlighter
 
 // Extend the Highlighter to include the custom renderer and a theme prop
-export interface SvelteHighlighter extends Highlighter {
+export interface SvelteHighlighter {
     theme: IShikiTheme;
     highlight(code: string, lang: TLang, inline?: boolean): string;
 }

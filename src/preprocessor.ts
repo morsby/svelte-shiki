@@ -5,8 +5,7 @@ import { SvelteNode, SvelteAst } from "./types";
 import { initHighlighter } from "./highlighter";
 import { getProp, replaceContents } from "./utils";
 import { PreprocessorGroup, Processed } from "svelte/types/compiler/preprocess";
-
-import { HighlighterOptions } from "shiki/dist/highlighter";
+import { HighlighterOptions } from "shiki";
 
 const highlightCode = async (content: string, options?: HighlighterOptions): Promise<string> => {
     // if no code elements, return
