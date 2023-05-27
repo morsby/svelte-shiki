@@ -39,6 +39,7 @@ export interface SvelteAst extends Ast {
 
 // Extend the Highlighter to include the custom renderer and a theme prop
 export interface SvelteHighlighter {
+    instance: Highlighter;
     theme: IShikiTheme;
     highlight(code: string, lang: TLang, inline?: boolean): string;
 }

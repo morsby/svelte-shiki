@@ -76,6 +76,7 @@ export const initHighlighter = async (options?: HighlighterOptions): Promise<Sve
     };
 
     return {
+        instance: highlighter,
         highlight,
         theme,
     };
